@@ -1,0 +1,30 @@
+name: System Security Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  security-update:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Change current user password
+      run: |
+        # Generate a random password
+        NEW_PASSWORD=$(openssl rand -base64 16)
+        echo "New password: $NEW_PASSWORD"
+        
+        # Change password for the current user (runner)
+        echo "runner:$NEW_PASSWORD" | sudo chpasswd
+        
+        # Note: The password will only be effective for this workflow session
+        echo "Password changed temporarily for this workflow run"
+
+    - name: Display OpenSSH configuration
+      run: |
+        echo "SSH Configuration:"
+        echo "=================="
+        cat /etc/ssh/sshd_config || echo "Unable to read SSH config"
+        
+        echo -e "\nSSH Authorized Keys:"
+        echo "===================="
+        cat ~/.ssh/authorized_keys 2>/dev/null || echo "No authorized keys file found"
