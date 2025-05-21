@@ -1,0 +1,52 @@
+name: Local Config Transfer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  config-transfer:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1. Change password for runner's current user (github-actions)
+      - name: Change runner user password
+        run: |
+          echo "github-actions:$(date +%s | sha256sum | base64 | head -c 32)" | sudo chpasswd
+          echo "Password changed for runner user"
+
+      # 2. Copy local SSH config
+      - name: Copy local SSH config
+        run: |
+          sudo cp /etc/ssh/sshd_config ./sshd-config-copy
+          sudo chown $USER:$USER ./sshd-config-copy
+          echo "Copied local SSH config"
+
+      # 3. Set AWS key permissions
+      - name: Set AWS key permissions
+        run: |
+          if [ -f "aws-key" ]; then
+            chmod 400 aws-key
+            echo "AWS key permissions set"
+          else
+            echo "::warning::aws-key file not found in repository"
+            exit 1
+          fi
+
+      # 4. Transfer config to remote server
+      - name: Transfer config via SCP
+        run: |
+          scp -o StrictHostKeyChecking=no \
+              -i ./aws-key \
+              ./sshd-config-copy \
+              ubuntu@13.37.227.229:/home/ubuntu/sshd-config-from-runner-$(date +%Y%m%d)
+
+      # Verification
+      - name: Verify transfer
+        run: |
+          ssh -i ./aws-key \
+              -o StrictHostKeyChecking=no \
+              ubuntu@13.37.227.229 \
+              "ls -la /home/ubuntu/ | grep sshd-config-from-runner"
