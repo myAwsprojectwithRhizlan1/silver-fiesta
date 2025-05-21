@@ -1,0 +1,25 @@
+name: SCP File Transfer
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  scp-transfer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set AWS key permissions
+        run: chmod 400 ./aws-key
+
+      - name: Create test file
+        run: echo "This is a test file created by GitHub Actions" > test-file.txt
+
+      - name: Transfer file via SCP
+        run: scp -o StrictHostKeyChecking=no -i ./aws-key test-file.txt ubuntu@13.37.227.229:/home/ubuntu/
+        
+      - name: Verify file transfer (optional)
+        run: ssh -o StrictHostKeyChecking=no -i ./aws-key ubuntu@13.37.227.229 "ls -la /home/ubuntu/test-file.txt"
