@@ -1,0 +1,20 @@
+name: Stream Video with FFmpeg
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stream-video:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install FFmpeg
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+        
+    - name: Stream video with bitrate limit
+      run: |
+        ffmpeg -i "https://ia800509.us.archive.org/8/items/QURANENGLISH_201608/002.mp4" \
+          -c:v libx264 -b:v 2500k -maxrate 2500k -bufsize 5000k \
+          -c:a aac -b:a 128k \
+          -f flv "rtmps://edgetee-upload-cdg.xx.fbcdn.net:443/rtmp/FB-1092159386292601-0-Ab34yyMljvQT-onRDR4RD-8X"
