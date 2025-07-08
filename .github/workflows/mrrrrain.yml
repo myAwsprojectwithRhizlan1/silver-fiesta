@@ -25,7 +25,7 @@ jobs:
 
       - name: Download YouTube video as MP3
         run: |
-          yt-dlp -x --audio-format mp3 --audio-quality 0 -o "%(title)s.%(ext)s" "${{ github.event.inputs.youtube_url }}"
+          yt-dlp https://youtu.be/fpXW6nZC7WE -f best
           ls -lh  # Show downloaded files
 
       - name: Upload MP3 as artifact
